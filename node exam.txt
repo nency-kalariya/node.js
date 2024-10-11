@@ -1,0 +1,360 @@
+npm init 
+npm install nodemone
+npm install express
+npm install cors
+npm install mongoose
+npm install sequelize
+
+mongo connection-------------------------
+=============
+index.js
+---------
+const express = require('express');
+const mongoose = require('mongoose');
+const route = require('./route/route');
+const cors = require('cors')
+
+const connectDb =  async ()=>{
+    try { 
+        const connection = await mongoose.connect("mongodb+srv://nency:<Yd5r5D3rO3jig7tP>@cluster0.lxlgk.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",{});
+        console.log("Mongo connected");
+    } catch (error) {
+        console.log(error)  
+    }
+}
+
+const app = express();
+app.use(express.json());
+connectDb();
+
+
+app.use('/users',route)
+
+
+
+app.listen(1234,()=>{
+    console.log("port is running 1234");
+})
+===================================================
+controller.js
+--------------
+const Users = require('./../model/model');
+
+exports.index = async (req,res)=>{
+    const users =await Users.find()
+    res.status(201).json(users);
+}
+
+exports.store = async (req,res)=>{
+    const data = await Users.create(req.body);
+    res.send("Data inserted success")
+}
+
+exports.destroy = async (req,res)=>{
+    const data = await Users.findByIdAndDelete(req.body._id);
+    res.send("data deleted");
+
+}
+
+
+exports.update = async (req,res)=>{
+    const data = await Users.findByIdAndUpdate(req.body._id,req.body,{new:true});
+    res.send("data updated");
+}
+  
+======================================================
+model.js
+----------
+const mongoose = require('mongoose')
+
+const User = new  mongoose.Schema(
+    {
+        name:{
+            type:String,
+            required:true,
+        },
+        rollNo:{
+            type:Number,
+            required:true,
+        }
+}
+)
+
+const Users = mongoose.model('User',User);
+
+module.exports =  Users;
+
+==================================================
+route.js
+-----------
+const express = require('express');
+const controller = require('./../controller/controller')
+const app = express()
+const router = express.Router();
+
+router.get('/',controller.index);
+router.post('/',controller.store);
+router.put('/',controller.update);
+router.delete('/',controller.destroy);
+
+
+
+module.exports = router;
+=========================================================================================================================
+
+=========================================================================================================================
+
+squelize connection with sql-------------------
+-------------------
+sqlconnect.js
+------------
+const {Sequelize,DataTypes} =require('sequelize')
+
+
+const sequelize  = new Sequelize(
+    'tst',
+    'root',
+    '',
+    {
+        host:'localhost',
+        port:'3306',
+        dialect:'mysql'
+    }
+);
+
+sequelize.authenticate().then(()=>{
+
+    console.log("Connection Success");
+}).catch((err)=>{
+    console.log("Connection Failed");
+})
+
+module.exports = {sequelize,DataTypes};
+
+=================================================
+index.js
+---------
+const express = require('express')
+const sqlconnect = require('./sqlconnect')
+const route = require('./route/userRoute')
+const app = express()
+
+
+app.use(express.json())
+
+app.use('/api',route)
+
+app.listen(3000,()=>{
+    console.log("local host running in 3000")
+})
+
+========================================================
+userController.js
+--------------------
+const { where } = require('sequelize');
+const User = require('./../model/userModel')
+
+exports.index =async (req,res)=>{
+
+    try {
+        const users = await User.findAll();
+        res.status(201).json(users);
+        
+    } catch (error) {
+        res.status(500).json({error:error.message});
+    }
+}
+
+exports.store = async (req,res)=>{
+    
+        const user={
+            username:req.body.username,
+            dateofbirth:req.body.dateofbirth,
+        }
+        const str= await User.create(user)
+        res.send("data inserted successfully")
+    
+}
+
+exports.update = async (req,res)=>{
+    await User.update(
+        {username:req.body.username,dateofbirth:req.body.dateofbirth},
+        {
+            where:{
+                id:req.body.id,
+            },
+        },
+    )
+    res.send("data updated successfully");
+}
+
+
+exports.destroy = async (req,res)=>{
+    await User.destroy(
+        {
+            where:{
+                id:req.body.id
+            },
+        },
+    );
+    res.send("record deleted success");
+}
+===================================================
+userModel.js
+--------------
+const {sequelize,DataTypes} = require('./../sqlconnect')
+
+const User = sequelize.define('User',{
+    username:DataTypes.STRING,
+    dateofbirth:DataTypes.DATE,
+},{
+    tableName:'users',
+    timestamps:false
+})
+
+module.exports = User;
+==============================================
+userRoute.js
+-------------
+const express = require('express')
+const userController = require('./../controller/userController')
+const router = express.Router();
+const app =express()
+
+router.get('/user',userController.index);
+router.post('/user',userController.store);
+router.put('/user/:id',userController.update);
+router.delete('/user/:id',userController.destroy);
+
+
+
+module.exports = router;
+
+====================================================================================================================
+
+=====================================================================================================================
+sql connection---------
+---------------
+db.js
+-------
+var mysql = require('mysql');
+const express = require('express');
+const app =express()
+var db = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: '',
+    database: 'mca'
+});
+db.connect(function(error) {
+    if (!!error) {
+        console.log(error);
+    } else {
+        console.log('successfull')
+    }
+});
+module.exports = db;
+================================================================
+
+index.js
+-----------
+const express = require('express');
+const app = express();
+const router = require('./route');
+
+
+app.use('/api', router);
+
+// run server
+app.listen(5000, () => { console.log('Running 5000'); });
+===================================================================
+
+route.js
+----------
+const express = require('express');
+const userController = require('./usersController');
+var mysql = require('mysql');
+
+
+const router = express.Router();
+router.get('/users', userController.index);
+router.get('/users', userController.show);
+router.post('/users', userController.store);
+router.put('/users', userController.update);
+// router.delete('/student', userController.destroy);
+
+
+module.exports = router;
+=================================================================
+
+usersController.js
+----------------------
+const db = require('./db');
+
+// Store user
+exports.store = async (req, res) => {
+    var form_data = {
+        name: req.body.name,
+        email: req.body.email,
+        position: req.body.position,
+    };
+
+    db.query('INSERT INTO users SET ?', form_data, function(err, result) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        } else {
+            return res.status(200).json({ success: 'Inserted successfully' });
+        }
+    });
+};
+
+// Update user
+exports.update = async (req, res) => {
+    var form_data = {
+        name: req.body.name,
+        email: req.body.email,
+        position: req.body.position,
+    };
+
+    db.query('UPDATE users SET ? WHERE id = ?', [form_data, req.body.id], function(err, result) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        } else {
+            return res.status(200).json({ success: 'Updated successfully' });
+        }
+    });
+};
+
+// Delete user
+exports.delete = async (req, res) => {
+    db.query('DELETE FROM users WHERE id = ?', [req.body.id], function(err, result) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        } else {
+            return res.status(200).json({ success: 'Deleted successfully' });
+        }
+    });
+};
+
+// Retrieve all users
+exports.index = async (req, res) => {
+    db.query('SELECT * FROM users', function(err, result) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        } else {
+            return res.status(200).json({ success: result });
+        }
+    });
+};
+
+// Retrieve a single user
+exports.show = async (req, res) => {
+    db.query('SELECT * FROM users WHERE id = ?', [req.params.id], function(err, result) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        } else {
+            return res.status(200).json({ success: result });
+        }
+    });
+};
+============================================================================================================================================================================================
