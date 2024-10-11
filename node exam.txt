@@ -5,6 +5,9 @@ npm install cors
 npm install mongoose
 npm install sequelize
 
+Yd5r5D3rO3jig7tP
+mongodb+srv://nency:<Yd5r5D3rO3jig7tP>@cluster0.lxlgk.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+
 mongo connection-------------------------
 =============
 index.js
