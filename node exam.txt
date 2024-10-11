@@ -239,7 +239,7 @@ module.exports = router;
 sql connection---------
 ---------------
 db.js
--------
+----------
 var mysql = require('mysql');
 const express = require('express');
 const app =express()
@@ -247,7 +247,7 @@ var db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     password: '',
-    database: 'mca'
+    database: 'student'
 });
 db.connect(function(error) {
     if (!!error) {
@@ -257,8 +257,7 @@ db.connect(function(error) {
     }
 });
 module.exports = db;
-================================================================
-
+=================================================================
 index.js
 -----------
 const express = require('express');
@@ -270,28 +269,25 @@ app.use('/api', router);
 
 // run server
 app.listen(5000, () => { console.log('Running 5000'); });
-===================================================================
-
+=================================================================
 route.js
-----------
+-----------
 const express = require('express');
-const userController = require('./usersController');
-var mysql = require('mysql');
-
-
+const userController = require('./usersController');  // Make sure the path is correct
 const router = express.Router();
-router.get('/users', userController.index);
-router.get('/users', userController.show);
-router.post('/users', userController.store);
-router.put('/users', userController.update);
-// router.delete('/student', userController.destroy);
 
+router.get('/users', userController.index);
+router.get('/users/:id', userController.show);
+router.post('/users', userController.store);
+router.put('/users/:id', userController.update);
+
+// Make sure the 'destroy' function exists in the controller
+router.delete('/users/:id', userController.delete);  // Fix the route if necessary
 
 module.exports = router;
 =================================================================
-
 usersController.js
-----------------------
+------------------
 const db = require('./db');
 
 // Store user
@@ -330,7 +326,8 @@ exports.update = async (req, res) => {
 
 // Delete user
 exports.delete = async (req, res) => {
-    db.query('DELETE FROM users WHERE id = ?', [req.body.id], function(err, result) {
+    db.query('DELETE FROM users WHERE id = ?', [req.body.id],
+        function(err, result) {
         if (err) {
             return res.status(500).json({ error: err.message });
         } else {
@@ -338,6 +335,7 @@ exports.delete = async (req, res) => {
         }
     });
 };
+
 
 // Retrieve all users
 exports.index = async (req, res) => {
@@ -360,4 +358,7 @@ exports.show = async (req, res) => {
         }
     });
 };
+==================================================================================================================================
+
+
 ============================================================================================================================================================================================
